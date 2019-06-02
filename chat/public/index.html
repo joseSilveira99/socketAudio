@@ -1,0 +1,216 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+  margin: 0 auto;
+  max-width: 800px;
+  padding: 0 20px;
+}
+
+.container {
+  border: 2px solid #dedede;
+  background-color: #f1f1f1;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.darker {
+  border-color: #ccc;
+  background-color: #ddd;
+}
+
+.container::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.container img {
+  float: left;
+  max-width: 60px;
+  width: 100%;
+  margin-right: 20px;
+  border-radius: 50%;
+}
+
+.container img.right {
+  float: right;
+  margin-left: 20px;
+  margin-right:0;
+}
+
+.time-right {
+  float: right;
+  color: #aaa;
+}
+
+.time-left {
+  float: left;
+  color: #999;
+}
+</style>
+</head>
+<body>
+
+<h2>Chat Messages</h2>
+
+<div class="container">
+  <img src="#" alt="Avatar" style="width:100%;">
+  <p>Hello. How are you today?</p>
+  <span class="time-right">11:00</span>
+</div>
+
+<div class="container darker">
+  <img src="#" alt="Avatar" class="right" style="width:100%;">
+  <p>Hey! I'm fine. Thanks for asking!</p>
+  <span class="time-left">11:01</span>
+</div>
+
+-->
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Chat</title>
+    <script src="jquery.js"></script>
+    <script src="socketio.js"></script>
+    <link rel="stylesheet" href="style.css">
+	<style>
+body {
+  margin: 0 auto;
+  max-width: 800px;
+  padding: 0 20px;
+}
+
+.container {
+  border: 2px solid #dedede;
+  background-color: #f1f1f1;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.darker {
+  border-color: #ccc;
+  background-color: #ddd;
+}
+
+.container::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.container img {
+  float: left;
+  max-width: 60px;
+  width: 100%;
+  margin-right: 20px;
+  border-radius: 50%;
+}
+
+.container img.right {
+  float: right;
+  margin-left: 20px;
+  margin-right:0;
+}
+
+.time-right {
+  float: right;
+  color: #aaa;
+}
+
+.time-left {
+  float: left;
+  color: #999;
+}
+</style>
+  </head>
+  <body>
+    <form id="chat">
+      <input id="username" type="text" name="username" placeholder="Digite seu usuario!">
+      <div class="messages">
+			
+      </div>
+      <input type="text" name="message" placeholder="Digite sua mensagem!">
+      <button type="submit">Enviar</button>
+    </form>
+
+    <script type="text/javascript">
+      function normalizeOperador(operador){
+        if (operador == 'dividir') {
+           return '/'; 
+
+         } else if(operador == 'somar' || operador == 'mais'){
+          return '+';
+
+         } else if(operador == 'subtrair' || operador == 'diminuir' || operador == 'menos'){
+          return '-';
+
+         } else if(operador == 'subtrair' || operador == 'vezes'){
+          return '*';
+         }
+      }
+
+      var expressao = "82 menos 10";
+      var expressaoArray = expressao.split(' ');
+      var primeiroValor = parseInt(expressaoArray[0]);
+      var operador = normalizeOperador(expressaoArray[1]);//Fazer método para normalizar o operador
+      var segundoValor = parseInt(expressaoArray[2]);
+
+      if(!isNaN(primeiroValor) && !isNaN(segundoValor)){//Garante que foram informados números
+          if(operador == '+'){
+            console.log(primeiroValor + segundoValor);
+          } else if(operador == '-'){
+            console.log(primeiroValor - segundoValor);
+          } else if(operador == '*'){
+            console.log(primeiroValor * segundoValor);
+          } else if(operador == '/'){
+            console.log(primeiroValor / segundoValor);
+          } else {
+            console.log('Erro matemático');
+          }
+      }else {
+        console.log('Não foi informado números');
+      }
+
+      var socket = io('http://localhost:3000/');
+
+      function renderMessage(message){
+		$('.messages').append('<div class="message"><strong style="color: red">'+ message.author +'</strong>: '+ message.message +'</div>');
+	  
+        /*$('.messages').append('<div class="container"><p>'+ message.message +'</p><span class="time-right">11:00</span></div>');
+		$('.messages').append('<div class="container darker"><p>'+ message.message +'</p><span class="time-right">11:00</span></div>');*/
+		
+      }
+      socket.on('previousMessages', function(messages){//Mensagens que foram emitidas para todos no socket
+        for(message of messages){
+          renderMessage(message);
+        }
+      });
+      socket.on('receivedMessage', function(message){//Adicionar uma nova mensagem ao socket
+        renderMessage(message);
+      });
+
+      $('#chat').submit(function(event){//Quando clicar em enviar este método entra em ação
+        event.preventDefault();
+
+        var author = 'LOL';
+        var message = $('input[name=message]').val();//Trocar aqui para enviar o audio
+
+        if(message.length){
+          var messageObject = {
+            author: author,
+            message: message,
+          };
+          renderMessage(messageObject);
+          socket.emit('sendMessage', messageObject);
+        }
+      });
+    </script>
+  </body>
+</html>
